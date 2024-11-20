@@ -1,0 +1,161 @@
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="initial-scale=1, maximum-scale=1,user-scalable=no" />
+  <title>National Park Visits</title>
+
+  <style>
+    html,
+    body,
+    arcgis-map {
+      padding: 0;
+      margin: 0;
+      height: 100%;
+      width: 100%;
+    }
+
+    calcite-shell {
+      --calcite-color-brand: #25ada2;
+    }
+  </style>
+  <!-- Load Calcite components from CDN -->
+  <link rel="stylesheet" type="text/css" href="https://js.arcgis.com/calcite-components/2.13.2/calcite.css" />
+  <script type="module" src="https://js.arcgis.com/calcite-components/2.13.2/calcite.esm.js"></script>
+
+  <!-- Load the ArcGIS Maps SDK for JavaScript from CDN -->
+  <link rel="stylesheet" href="https://js.arcgis.com/4.31/esri/themes/light/main.css" />
+  <script src="https://js.arcgis.com/4.31/"></script>
+
+  <!-- Load Map components from CDN-->
+  <script type="module" src="https://js.arcgis.com/map-components/4.31/arcgis-map-components.esm.js"></script>
+</head>
+
+<body>
+  <calcite-shell>
+    <arcgis-map item-id="8aa8e543e8e0446e8e2937e2b743b9f0">
+      <arcgis-zoom position="top-left"></arcgis-zoom>
+      <arcgis-expand expanded position="top-left">
+        <arcgis-legend></arcgis-legend>
+      </arcgis-expand>
+    </arcgis-map>
+    <calcite-shell-panel id="slider-panel" slot="panel-bottom">
+      <div id="slider-container">
+        <label>
+          <span id="slider-label">Year: 2023</span>
+          <calcite-slider
+            has-histogram id="yearSlider" label-handles label-ticks
+            ticks="20" min="1905" max="2023" value="2023" step="1"
+            min-label="1905" max-label="2023" scale="m"
+          ></calcite-slider>
+        </label>
+      </div>
+    </calcite-shell-panel>
+  </calcite-shell>
+
+  <script>
+    require([
+      "esri/intl"
+    ], (esriIntl) => {
+      const yearSlider = document.querySelector("calcite-slider");
+      const arcgisMap = document.querySelector("arcgis-map");
+      const sliderLabel = document.getElementById("slider-label");
+
+      arcgisMap.addEventListener("arcgisViewReadyChange", async () => {
+
+        const layer = arcgisMap.map.layers.getItemAt(0);
+
+        const stats = await queryTotalVisits({ layer });
+        const histogram = createHistogram(stats);
+        yearSlider.histogram = histogram;
+
+        const visits2023 = esriIntl.formatNumber(stats[`F${2023}`]);
+        sliderLabel.innerText = `${visits2023} visits in ${2023}`;
+
+        yearSlider.addEventListener("calciteSliderInput", () => {
+          const year = yearSlider.value;
+
+          const renderer = updateRenderer({ layer, year });
+          layer.renderer = renderer;
+
+          const labelingInfo = updateLabels({ layer, year });
+          layer.labelingInfo = labelingInfo;
+
+          const visits = esriIntl.formatNumber(stats[`F${year}`]);
+          sliderLabel.innerText = `${visits} visits in ${year}`;
+        });
+      });
+
+      function updateRenderer({ layer, year }) {
+        const renderer = layer.renderer.clone();
+        renderer.valueExpression = createArcadeExpression({ year });
+
+        const colorVariable = renderer.visualVariables.find((visualVariable) => {
+          return visualVariable.type === "color";
+        });
+        colorVariable.valueExpression = createArcadeExpression({ year });
+
+        const sizeVariable = renderer.visualVariables.find((visualVariable) => {
+          return visualVariable.type === "size";
+        });
+        sizeVariable.field = `F${year}`;
+        sizeVariable.legendOptions = {
+          title: `Visits in ${year}`
+        };
+
+        return renderer;
+      }
+
+      function createArcadeExpression({ year }) {
+        const current = year;
+        const previous = year - 1;
+
+        const expression = `var s = $feature.F${previous};
+         var e = $feature.F${current};
+         return ((e - s) / s) * 100;`;
+
+        return expression;
+      }
+
+      function updateLabels({ layer, year }) {
+        const labelingInfo = layer.labelingInfo;
+        labelingInfo.forEach((labelClass) => {
+          labelClass.where = labelClass.where.replace(/[F][0-9]{4}/gm, `F${year}`);
+        });
+        return labelingInfo;
+      }
+
+      async function queryTotalVisits({ layer }) {
+        const query = layer.createQuery();
+        query.outStatistics = [];
+
+        const startYear = 1905;
+        const endYear = 2023;
+
+        for (let year = startYear; year <= endYear; year++) {
+          query.outStatistics.push({
+            onStatisticField: `F${year}`,
+            outStatisticFieldName: `F${year}`,
+            statisticType: "sum"
+          });
+        }
+
+        const { features } = await layer.queryFeatures(query);
+        const stats = features[0].attributes;
+        return stats;
+      }
+
+      function createHistogram(stats) {
+        const histogram = [];
+        for (const stat in stats) {
+          const year = parseInt(stat.replace("F", ""));
+          histogram.push([year, stats[stat]]);
+        }
+        return histogram;
+      }
+
+    });
+  </script>
+</body>
+
+</html>
