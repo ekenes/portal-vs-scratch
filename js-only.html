@@ -1,0 +1,768 @@
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
+  <title>National Park Annual Visits (2023)</title>
+
+  <style>
+    html,
+    body,
+    #viewDiv {
+      padding: 0;
+      margin: 0;
+      height: 100%;
+      width: 100%;
+    }
+  </style>
+
+  <link rel="stylesheet" href="https://js.arcgis.com/4.31/esri/themes/light/main.css" />
+
+  <script src="https://js.arcgis.com/4.31/"></script>
+
+  <script>
+    require([
+      "esri/views/MapView",
+      "esri/WebMap",
+      "esri/layers/FeatureLayer",
+      "esri/layers/VectorTileLayer",
+      "esri/layers/TileLayer"
+    ], (
+      MapView, WebMap, FeatureLayer, VectorTileLayer, TileLayer
+    ) => {
+
+      const startYear = 1904;
+      const endYear = 2023;
+
+      const fieldInfos = [{
+        fieldName: "ObjectId",
+        label: "ObjectId",
+        visible: false
+      }];
+      const fields = [];
+
+      for (let year = startYear; year <= endYear; year++) {
+        fieldInfos.push({
+          fieldName: `F${year}`,
+          label: year.toString(),
+          visible: true,
+          format: {
+            digitSeparator: true,
+            places: 0
+          }
+        });
+        fields.push(`F${year}`);
+      }
+
+      const layer = new FeatureLayer({
+        title: "US National Parks Annual Visitation",
+        url: "https://services.arcgis.com/V6ZHFr6zdgNZuVG0/arcgis/rest/services/US_National_Parks_Annual_Visitation/FeatureServer/0",
+        popupEnabled: true,
+        effect: [
+          {
+            scale: 147914381.897888,
+            value: "drop-shadow(0.75px 0.75px 1.125px #797979)"
+          },
+          {
+            scale: 36978595.474472,
+            value: "drop-shadow(1.5px 1.5px 2.25px #797979)"
+          },
+          {
+            scale: 9244648.868618,
+            value: "drop-shadow(3px 3px 4.5px #797979)"
+          }
+        ],
+        labelingInfo: [
+          {
+            labelExpressionInfo: {
+              expression: "var name = $feature[\"Park\"];\nTrim(Replace(name, \" National Park\", \"\"));",
+              title: "Abbreviated name"
+            },
+            labelPlacement: "center-right",
+            symbol: {
+              type: "text",
+              color: [
+                33,
+                51,
+                40,
+                1
+              ],
+              font: {
+                family: "BellTopo Sans",
+                size: 9.75
+              },
+              horizontalAlignment: "center",
+              haloColor: [
+                238,
+                237,
+                234,
+                1
+              ],
+              haloSize: 1,
+              text: "",
+              verticalAlignment: "baseline",
+              xoffset: -8,
+              yoffset: 8,
+              angle: 0
+            },
+            where: "F2023 < 1000000"
+          },
+          {
+            name: "1 - 3 million",
+            labelExpressionInfo: {
+              expression: "var name = $feature[\"Park\"];\nTrim(Replace(name, \" National Park\", \"\"));",
+              title: "Abbreviated name"
+            },
+            labelPlacement: "center-right",
+            symbol: {
+              type: "text",
+              color: [
+                33,
+                51,
+                40,
+                1
+              ],
+              font: {
+                family: "BellTopo Sans",
+                size: 12.75
+              },
+              horizontalAlignment: "center",
+              haloColor: [
+                238,
+                237,
+                234,
+                1
+              ],
+              haloSize: 1,
+              text: "",
+              verticalAlignment: "baseline",
+              xoffset: -10,
+              yoffset: 11,
+              angle: 0
+            },
+            where: "F2023 BETWEEN 1000000 AND 4000000"
+          },
+          {
+            name: "3 million",
+            labelExpressionInfo: {
+              expression: "var name = $feature[\"Park\"];\nTrim(Replace(name, \" National Park\", \"\"));",
+              title: "Abbreviated name"
+            },
+            labelPlacement: "center-right",
+            repeatLabel: true,
+            symbol: {
+              type: "text",
+              color: [
+                33,
+                51,
+                40,
+                1
+              ],
+              font: {
+                family: "BellTopo Sans",
+                size: 15,
+                weight: "bold"
+              },
+              horizontalAlignment: "center",
+              haloColor: [
+                238,
+                237,
+                234,
+                1
+              ],
+              haloSize: 1,
+              text: "",
+              verticalAlignment: "baseline",
+              xoffset: -14,
+              yoffset: 14,
+              angle: 0
+            },
+            where: "F2023 BETWEEN 4000000 AND 10000000"
+          },
+          {
+            name: "10 million",
+            labelExpressionInfo: {
+              expression: "var name = $feature[\"Park\"];\nTrim(Replace(name, \" National Park\", \"\"));",
+              title: "Abbreviated name"
+            },
+            labelPlacement: "center-right",
+            repeatLabel: true,
+            symbol: {
+              type: "text",
+              color: [
+                33,
+                51,
+                40,
+                1
+              ],
+              font: {
+                family: "BellTopo Sans",
+                size: 17.25,
+                weight: "bold"
+              },
+              horizontalAlignment: "center",
+              kerning: true,
+              haloColor: [
+                238,
+                237,
+                234,
+                1
+              ],
+              haloSize: 1,
+              rotated: false,
+              text: "",
+              xoffset: -20,
+              yoffset: 9,
+              angle: 0
+            },
+            where: "F2023 >= 10000000"
+          }
+        ],
+        renderer: {
+          type: "class-breaks",
+          visualVariables: [
+            {
+              type: "color",
+              valueExpression: "var s = $feature.F2022;\r\nvar e = $feature.F2023;\r\nreturn ((e - s) / s) * 100; ",
+              valueExpressionTitle: "% change in visits from previous year",
+              stops: [
+                {
+                  color: [
+                    179,
+                    74,
+                    0,
+                    1
+                  ],
+                  value: -20
+                },
+                {
+                  color: [
+                    217,
+                    131,
+                    70,
+                    1
+                  ],
+                  value: -10
+                },
+                {
+                  color: [
+                    242,
+                    242,
+                    170,
+                    1
+                  ],
+                  value: 0
+                },
+                {
+                  color: [
+                    105,
+                    212,
+                    203,
+                    1
+                  ],
+                  value: 10
+                },
+                {
+                  color: [
+                    0,
+                    153,
+                    140,
+                    1
+                  ],
+                  value: 20
+                }
+              ]
+            },
+            {
+              type: "size",
+              field: "F2023",
+              maxDataValue: 10000000,
+              maxSize: {
+                type: "size",
+                valueExpression: "$view.scale",
+                stops: [
+                  {
+                    size: 80.5,
+                    value: 1155581.108577
+                  },
+                  {
+                    size: 80.5,
+                    value: 9244648.868618
+                  },
+                  {
+                    size: 48.4,
+                    value: 73957190.948944
+                  },
+                  {
+                    size: 24.3,
+                    value: 591657527.591555
+                  }
+                ]
+              },
+              minDataValue: 11045,
+              minSize: {
+                type: "size",
+                valueExpression: "$view.scale",
+                stops: [
+                  {
+                    size: 20.1,
+                    value: 1155581.108577
+                  },
+                  {
+                    size: 16,
+                    value: 9244648.868618
+                  },
+                  {
+                    size: 8.4,
+                    value: 73957190.948944
+                  },
+                  {
+                    size: 3.6,
+                    value: 591657527.591555
+                  }
+                ]
+              }
+            }
+          ],
+          classBreakInfos: [
+            {
+              maxValue: 9007199254740991,
+              minValue: -9007199254740991,
+              symbol: {
+                type: "cim",
+                data: {
+                  type: "CIMSymbolReference",
+                  symbol: {
+                    type: "CIMPointSymbol",
+                    symbolLayers: [
+                      {
+                        type: "CIMVectorMarker",
+                        enable: true,
+                        anchorPointUnits: "Relative",
+                        dominantSizeAxis3D: "Y",
+                        size: 5.108108108108109,
+                        billboardMode3D: "FaceNearPlane",
+                        frame: {
+                          xmin: 0,
+                          ymin: 0,
+                          xmax: 21,
+                          ymax: 21
+                        },
+                        markerGraphics: [
+                          {
+                            type: "CIMMarkerGraphic",
+                            geometry: {
+                              rings: [
+                                [
+                                  [
+                                    15,
+                                    15
+                                  ],
+                                  [
+                                    12,
+                                    15
+                                  ],
+                                  [
+                                    16,
+                                    10
+                                  ],
+                                  [
+                                    13,
+                                    10
+                                  ],
+                                  [
+                                    17,
+                                    5
+                                  ],
+                                  [
+                                    11,
+                                    5
+                                  ],
+                                  [
+                                    11,
+                                    2
+                                  ],
+                                  [
+                                    10,
+                                    2
+                                  ],
+                                  [
+                                    10,
+                                    5
+                                  ],
+                                  [
+                                    4,
+                                    5
+                                  ],
+                                  [
+                                    8,
+                                    10
+                                  ],
+                                  [
+                                    5,
+                                    10
+                                  ],
+                                  [
+                                    9,
+                                    15
+                                  ],
+                                  [
+                                    6,
+                                    15
+                                  ],
+                                  [
+                                    10.5,
+                                    19
+                                  ],
+                                  [
+                                    15,
+                                    15
+                                  ]
+                                ]
+                              ]
+                            },
+                            symbol: {
+                              type: "CIMPolygonSymbol",
+                              symbolLayers: [
+                                {
+                                  type: "CIMSolidStroke",
+                                  enable: true,
+                                  capStyle: "Round",
+                                  joinStyle: "Round",
+                                  lineStyle3D: "Strip",
+                                  miterLimit: 10,
+                                  width: 0.375,
+                                  color: [
+                                    42,
+                                    177,
+                                    165,
+                                    87
+                                  ]
+                                },
+                                {
+                                  type: "CIMSolidFill",
+                                  enable: true,
+                                  color: [
+                                    0,
+                                    0,
+                                    0,
+                                    128
+                                  ]
+                                }
+                              ]
+                            }
+                          }
+                        ],
+                        scaleSymbolsProportionally: true,
+                        respectFrame: true,
+                        rotation: 360
+                      },
+                      {
+                        type: "CIMVectorMarker",
+                        enable: true,
+                        colorLocked: true,
+                        anchorPointUnits: "Relative",
+                        dominantSizeAxis3D: "Y",
+                        size: 6,
+                        billboardMode3D: "FaceNearPlane",
+                        frame: {
+                          xmin: -5,
+                          ymin: -5,
+                          xmax: 5,
+                          ymax: 5
+                        },
+                        markerGraphics: [
+                          {
+                            type: "CIMMarkerGraphic",
+                            geometry: {
+                              rings: [
+                                [
+                                  [
+                                    0,
+                                    5
+                                  ],
+                                  [
+                                    0.87,
+                                    4.92
+                                  ],
+                                  [
+                                    1.71,
+                                    4.7
+                                  ],
+                                  [
+                                    2.5,
+                                    4.33
+                                  ],
+                                  [
+                                    3.21,
+                                    3.83
+                                  ],
+                                  [
+                                    3.83,
+                                    3.21
+                                  ],
+                                  [
+                                    4.33,
+                                    2.5
+                                  ],
+                                  [
+                                    4.7,
+                                    1.71
+                                  ],
+                                  [
+                                    4.92,
+                                    0.87
+                                  ],
+                                  [
+                                    5,
+                                    0
+                                  ],
+                                  [
+                                    4.92,
+                                    -0.87
+                                  ],
+                                  [
+                                    4.7,
+                                    -1.71
+                                  ],
+                                  [
+                                    4.33,
+                                    -2.5
+                                  ],
+                                  [
+                                    3.83,
+                                    -3.21
+                                  ],
+                                  [
+                                    3.21,
+                                    -3.83
+                                  ],
+                                  [
+                                    2.5,
+                                    -4.33
+                                  ],
+                                  [
+                                    1.71,
+                                    -4.7
+                                  ],
+                                  [
+                                    0.87,
+                                    -4.92
+                                  ],
+                                  [
+                                    0,
+                                    -5
+                                  ],
+                                  [
+                                    -0.87,
+                                    -4.92
+                                  ],
+                                  [
+                                    -1.71,
+                                    -4.7
+                                  ],
+                                  [
+                                    -2.5,
+                                    -4.33
+                                  ],
+                                  [
+                                    -3.21,
+                                    -3.83
+                                  ],
+                                  [
+                                    -3.83,
+                                    -3.21
+                                  ],
+                                  [
+                                    -4.33,
+                                    -2.5
+                                  ],
+                                  [
+                                    -4.7,
+                                    -1.71
+                                  ],
+                                  [
+                                    -4.92,
+                                    -0.87
+                                  ],
+                                  [
+                                    -5,
+                                    0
+                                  ],
+                                  [
+                                    -4.92,
+                                    0.87
+                                  ],
+                                  [
+                                    -4.7,
+                                    1.71
+                                  ],
+                                  [
+                                    -4.33,
+                                    2.5
+                                  ],
+                                  [
+                                    -3.83,
+                                    3.21
+                                  ],
+                                  [
+                                    -3.21,
+                                    3.83
+                                  ],
+                                  [
+                                    -2.5,
+                                    4.33
+                                  ],
+                                  [
+                                    -1.71,
+                                    4.7
+                                  ],
+                                  [
+                                    -0.87,
+                                    4.92
+                                  ],
+                                  [
+                                    0,
+                                    5
+                                  ]
+                                ]
+                              ]
+                            },
+                            symbol: {
+                              type: "CIMPolygonSymbol",
+                              symbolLayers: [
+                                {
+                                  type: "CIMSolidStroke",
+                                  enable: true,
+                                  capStyle: "Round",
+                                  joinStyle: "Round",
+                                  lineStyle3D: "Strip",
+                                  miterLimit: 10,
+                                  width: 0.16216216216216217,
+                                  color: [
+                                    0,
+                                    0,
+                                    0,
+                                    0
+                                  ]
+                                },
+                                {
+                                  type: "CIMSolidFill",
+                                  enable: true,
+                                  color: [
+                                    0,
+                                    0,
+                                    0,
+                                    0
+                                  ]
+                                }
+                              ]
+                            }
+                          }
+                        ],
+                        respectFrame: true,
+                        rotation: 360
+                      }
+                    ],
+                    haloSize: 1,
+                    scaleX: 1,
+                    angleAlignment: "Display",
+                    angle: 360
+                  }
+                }
+              }
+            }
+          ],
+          valueExpression: "var s = $feature.F2022;\r\nvar e = $feature.F2023;\r\nreturn ((e - s) / s) * 100; ",
+          valueExpressionTitle: "Change in visits from last 10 years"
+        },
+        popupTemplate: {
+          content: [,
+            {
+              type: "text",
+              text: "<p>{Park} had <strong>{F2023}</strong> unique visits in 2023.</p>"
+            },
+            {
+              type: "media",
+              description: "",
+              mediaInfos: [
+                {
+                  altText: "",
+                  caption: "",
+                  title: "Park visits per year",
+                  type: "column-chart",
+                  value: {
+                    colors: new Array(endYear - startYear + 1).fill([14,161,148,0.5]),
+                    fields
+                  }
+                }
+              ],
+              title: ""
+            }
+          ],
+          fieldInfos,
+          title: "{Park}"
+        }
+      });
+
+      const map = new WebMap({
+        layers: [layer],
+        basemap: {
+          baseLayers: [
+            new VectorTileLayer({
+              opacity: 1,
+              title: "Human Geography Base",
+              visibility: true,
+              url: "https://cdn.arcgis.com/sharing/rest/content/items/2afe5b807fa74006be6363fd243ffb30/resources/styles/root.json"
+            }),
+            new TileLayer({
+              opacity: 0.5,
+              title: "World Hillshade",
+              url: "https://services.arcgisonline.com/arcgis/rest/services/Elevation/World_Hillshade/MapServer",
+              itemId: "1b243539f4514b6ba35e7d995890db1d",
+            }),
+            new VectorTileLayer({
+              opacity: 0.38,
+              title: "Human Geography Detail",
+              visibility: true,
+              blendMode: "multiply",
+              url: "https://cdn.arcgis.com/sharing/rest/content/items/97fa1365da1e43eabb90d0364326bc2d/resources/styles/root.json"
+            }),
+            new VectorTileLayer({
+              opacity: 0.25,
+              title: "Human Geography Label",
+              visibility: true,
+              url: "https://cdn.arcgis.com/sharing/rest/content/items/018d570994c34c1884f078fe056f5d4a/resources/styles/root.json"
+            })
+          ],
+        }
+      });
+
+      const view = new MapView({
+        map,
+        container: "viewDiv",
+        viewpoint: {
+          scale: 18489297.737236,
+          targetGeometry: {
+            type: "extent",
+            spatialReference: {
+              latestWkid: 3857,
+              wkid: 102100
+            },
+            xmin: -14057217.764866741,
+            ymin: 2399360.2630952084,
+            xmax: -7374787.00406527,
+            ymax: 6797241.1225099405
+          }
+        }
+      });
+
+    });
+  </script>
+</head>
+
+<body>
+  <div id="viewDiv"></div>
+</body>
+
+</html>
