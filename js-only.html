@@ -26,9 +26,11 @@
       "esri/WebMap",
       "esri/layers/FeatureLayer",
       "esri/layers/VectorTileLayer",
-      "esri/layers/TileLayer"
+      "esri/layers/TileLayer",
+      "esri/widgets/Legend",
+      "esri/widgets/Expand"
     ], (
-      MapView, WebMap, FeatureLayer, VectorTileLayer, TileLayer
+      MapView, WebMap, FeatureLayer, VectorTileLayer, TileLayer, Legend, Expand
     ) => {
 
       const startYear = 1904;
@@ -756,6 +758,11 @@
           }
         }
       });
+      view.ui.add(new Expand({
+        content: new Legend({ view }),
+        expanded: true,
+        view
+      }), "top-left");
 
     });
   </script>
