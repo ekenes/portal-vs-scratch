@@ -13,10 +13,16 @@
       margin: 0;
       height: 100%;
       width: 100%;
+      display: flex;
     }
 
     calcite-shell {
       --calcite-color-brand: #25ada2;
+    }
+
+    #slider-container {
+      width: 98%;
+      margin: 0.5rem;
     }
   </style>
   <!-- Load Calcite components from CDN -->
@@ -39,13 +45,13 @@
         <arcgis-legend></arcgis-legend>
       </arcgis-expand>
     </arcgis-map>
-    <calcite-shell-panel id="slider-panel" slot="panel-bottom">
+    <calcite-shell-panel id="slider-panel" slot="panel-bottom" layout="horizontal">
       <div id="slider-container">
         <label>
           <span id="slider-label">Year: 2023</span>
           <calcite-slider
             has-histogram id="yearSlider" label-handles label-ticks
-            ticks="20" min="1905" max="2023" value="2023" step="1"
+            ticks="5" min="1905" max="2023" value="2023" step="1"
             min-label="1905" max-label="2023" scale="m"
           ></calcite-slider>
         </label>
