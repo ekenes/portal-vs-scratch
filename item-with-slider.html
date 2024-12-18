@@ -87,6 +87,9 @@
           const labelingInfo = updateLabels({ layer, year });
           layer.labelingInfo = labelingInfo;
 
+          const popupTemplate = updatePopupTemplate({ layer, year });
+          layer.popupTemplate = popupTemplate;
+
           const visits = esriIntl.formatNumber(stats[`F${year}`]);
           sliderLabel.innerText = `${visits} visits in ${year}`;
         });
@@ -129,6 +132,15 @@
           labelClass.where = labelClass.where.replace(/[F][0-9]{4}/gm, `F${year}`);
         });
         return labelingInfo;
+      }
+
+      function updatePopupTemplate({ layer, year }) {
+        const popupTemplate = layer.popupTemplate.clone();
+        const textElement = popupTemplate.content.find((element) => {
+          return element.type === "text";
+        });
+        textElement.text = `<p>{Park} had <strong>{F${year}}</strong> unique visits in ${year}.</p>`;
+        return popupTemplate;
       }
 
       async function queryTotalVisits({ layer }) {
